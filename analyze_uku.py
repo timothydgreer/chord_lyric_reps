@@ -15,8 +15,8 @@ import nltk
 #Read in Chords and Lyrics in order to analyze them
 with open('chords_and_lyrics_uku_pipes_english_only_using_lyrics.txt', 'rb') as myFile:
     temp_text = myFile.readlines()
-print type(temp_text[4]) #make sure we have the right type (string)
-print temp_text[4]
+print(type(temp_text[4])) #make sure we have the right type (string)
+print(temp_text[4])
 
 #read in chord casting table
 with open('chord_casting_UTF-8.txt', 'r') as f:
@@ -222,7 +222,7 @@ for u in xrange(len(temp_text)):
         castedChords.append(tempChord)
         #ADDITIONAL CODE FOR CHECKER
         if(not castedFlag):
-            print fullText
+            print(fullText)
             uncastedChords.append(origChord)
     #Now let's figure out whether our current line is chords or lyrics, and process it appropriately
     #this means our current line is chords
@@ -250,9 +250,9 @@ for u in xrange(len(temp_text)):
             temp_section_lyrics.append(fullText)
 
 #We've done it!  Now let's do some final post-processing, printing overall stats and putting our data in files
-print len(big_list_of_chords)
-print len(big_list_of_lyrics)
-print len(temp_text)
+print(len(big_list_of_chords))
+print(len(big_list_of_lyrics))
+print(len(temp_text))
 
 
 pickle.dump( big_list_of_lyrics, open( "lyrics_uku.p", "wb" ) )
@@ -276,17 +276,17 @@ with open('lyrics_uku.txt','wb') as myFile:
     myFile.writelines(big_list_of_lyrics)
 with open('chords_uku.txt','wb') as myFile:
     myFile.writelines(big_list_of_chords)
-print h
-print keep
-print keep2
-print k
-print kk
+print(h)
+print(keep)
+print(keep2)
+print(k)
+print(kk)
 
 #ADDITIONAL CODE FOR CHECKER:
 if(len(uncastedChords)==0):
     print("Every chord was found in the casting table! Good job.")
 else:
-    print ("Chords which were not found in the casting table: ")
+    print("Chords which were not found in the casting table: ")
     for chord in uncastedChords:
-        print (chord)
-print len(uncastedChords) 
+        print(chord)
+print(len(uncastedChords))
