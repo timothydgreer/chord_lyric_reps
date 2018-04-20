@@ -10,13 +10,16 @@ import pickle
 from string import ascii_lowercase
 #import enchant
 import json
-"""
-Test
+
+#Test
 d=enchant.Dict("en_US")
 print(d.check("Hello")) #should print True
 print(d.check("Helo")) #should print False
-"""
-"""
+
+def clean_string(string):
+    string = string.replace('\n','')
+    string.strip()
+
 def checkEnglish(title):
     ENGLISH_THRESHOLD = 0.3 #if 50% or more of the words are in English, consider english
     dict = enchant.Dict("en_US")
@@ -32,7 +35,7 @@ def checkEnglish(title):
 """
 def checkEnglish(title):
     return True #placeholder b/c I can't install enchant on my machine -Ben
-
+"""
 print ("Running!")
 #urllib2 object can open URLs for us
 opener = urllib2.build_opener()
@@ -98,7 +101,7 @@ pickle.dump(song_links,open( "song_links_uku.p", "wb"))
 
 #now all of our song URLs are stored
 song_links = pickle.load(open( "song_links_uku.p", "rb"))
-print len(song_links)
+print(len(song_links))
 b = 0 #b keeps track of how many songs we've successfully transcribed to text
 for i in xrange(len(song_links)):
     url = str(song_links[i])
@@ -116,7 +119,7 @@ for i in xrange(len(song_links)):
     try:
         response = opener.open(url)
     except:
-        print url + ' cannot be opened'
+        print(url + ' cannot be opened')
         continue
     page = response.read()
     soup = BeautifulSoup(page, 'lxml')
@@ -128,7 +131,7 @@ for i in xrange(len(song_links)):
             try:
                 tempy = tempy+link.text
             except:
-                print 'No Pre'
+                print('No Pre')
                 continue
     
     #This next bit adds the genre tags -Ben M
@@ -150,7 +153,6 @@ for i in xrange(len(song_links)):
             except:
                 pass
     bio = "N/A"
-    bioCellFlag = False
     for tableCell in soup.find_all('div'):
         #print(tableCell)
         try:
@@ -158,16 +160,52 @@ for i in xrange(len(song_links)):
                 bio = tableCell.text
         except:
             continue
+    artist_fm = artist.replace(' ','+')
+    
+    last_fm_link = 'https://www.last.fm/music/'+artist_fm+'/+wiki'
+    try:
+        response2 = opener.open(last_fm_link)
+    except:
+        print(last_fm_link + ' cannot be opened')
+        continue
+    page2 = response2.read()
+    soup2 = BeautifulSoup(page2, 'lxml')
+    for link in soup2.find_all('div'):
+        try:
+            if link['class'][0] == 'wiki-content':
+                bio = link.text
+                #print(link.text)
+        except:
+            continue
+    years_active = "N/A"
+    founded_in = "N/A"
+    members = []
+    for link in soup2.find_all('li'):
+        try:
+            if link['class'][0] == 'factbox-item':
+                #print(link.text[:13])
+                if "Years Active" in link.text[:13]:
+                    years_active = link.text[13:].strip()
+                if "Founded In" in link.text[:12]:
+                    founded_in = link.text[12:].strip()
+                if "Members" in link.text[:9]:
+                    memberstemp = link.text[9:].split(" ")
+                    members = [x.strip() for x in memberstemp if x is not u""]
+                #print(link.text)
+        except:
+            continue
     #this finds all anchors (<a>) in all <span>s in all <td>s in each <pre>
     #^This implementation is site specific to the way UkuTabs organizes the content
     anchors = [a for a in (td.find_all('span') for td in soup.find_all('pre')) if a]
+    k = 0
     for link in soup.find_all('pre'):
         try:
             if not checkEnglish(link.text):
-                print str(song_links[i])
+                print(str(song_links[i]))
                 with open('non-english-songs_using_lyrics.txt','a') as myFile:
                         myFile.write(song_links[i]+'\n')
-                print "Skipping"
+                print("Skipping")
+                k = k+1
                 continue
             
             data = []
@@ -176,7 +214,10 @@ for i in xrange(len(song_links)):
                     'artist' : artist,
                     'bio' : bio,
                     'genres' : [],
-                    'chords_lyrics' : tempy
+                    'chords_lyrics' : tempy,
+                    'years_active'  : years_active,
+                    'founded_in'  : founded_in,
+                    'members'  : members
                     }) 
             data[-1]['genres']  = genreTagList
             
@@ -184,10 +225,9 @@ for i in xrange(len(song_links)):
                 json.dump(data, myFile)
             #print "Written!"
             b = b+1 
-        except KeyboardInterrupt:
+        except:
             #print 'No Pre'
-            break
             continue
     
 #5014 songs for .3
-print 'Number of songs ' + str(b)
+print('Number of songs ' + str(b))
