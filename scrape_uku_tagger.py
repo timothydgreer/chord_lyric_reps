@@ -8,7 +8,7 @@ import urllib2
 from bs4 import BeautifulSoup
 import pickle
 from string import ascii_lowercase
-#import enchant
+import enchant
 import json
 
 #Test
@@ -103,6 +103,7 @@ pickle.dump(song_links,open( "song_links_uku.p", "wb"))
 song_links = pickle.load(open( "song_links_uku.p", "rb"))
 print(len(song_links))
 b = 0 #b keeps track of how many songs we've successfully transcribed to text
+k = 0 #k keeps track of how many songs do not have English lyrics
 for i in xrange(len(song_links)):
     url = str(song_links[i])
     print("On URL '"+url+"'...")
@@ -197,9 +198,11 @@ for i in xrange(len(song_links)):
     #this finds all anchors (<a>) in all <span>s in all <td>s in each <pre>
     #^This implementation is site specific to the way UkuTabs organizes the content
     anchors = [a for a in (td.find_all('span') for td in soup.find_all('pre')) if a]
-    k = 0
+    already_added = False #More than one 'pre' sometimes
     for link in soup.find_all('pre'):
         try:
+            if already_added:
+                continue
             if not checkEnglish(link.text):
                 print(str(song_links[i]))
                 with open('non-english-songs_using_lyrics.txt','a') as myFile:
@@ -224,10 +227,11 @@ for i in xrange(len(song_links)):
             with open('chords_and_lyrics_uku_pipes_english_only_using_lyrics_tags.txt','a') as myFile:
                 json.dump(data, myFile)
             #print "Written!"
-            b = b+1 
+            b = b+1
+            already_added = True
         except:
             #print 'No Pre'
             continue
     
-#5014 songs for .3
+#5442 songs for .3
 print('Number of songs ' + str(b))
