@@ -7,7 +7,7 @@ Created on Thu Sep 28 18:29:01 2017
 import re
 import caster
 import pickle
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from string import ascii_lowercase
 import nltk
 
@@ -15,8 +15,8 @@ import nltk
 #Read in Chords and Lyrics in order to analyze them
 with open('chords_and_lyrics_uku_pipes_english_only_using_lyrics.txt', 'rb') as myFile:
     temp_text = myFile.readlines()
-print(type(temp_text[4])) #make sure we have the right type (string)
-print(temp_text[4])
+print((type(temp_text[4]))) #make sure we have the right type (string)
+print((temp_text[4]))
 
 #read in chord casting table
 with open('chord_casting_UTF-8.txt', 'r') as f:
@@ -25,7 +25,7 @@ with open('chord_casting_UTF-8.txt', 'r') as f:
     exploLine=[]
     for line in f:
         exploLine = line.split("\t")
-        inputs.append(exploLine[0].replace('\ufeff','').strip()) #clean up the special chars
+        inputs.append(exploLine[0].replace('\\ufeff','').strip()) #clean up the special chars
         outputs.append(exploLine[1].replace('\n', '').strip()) #clean up special chars
     castingTable = list(zip(inputs, outputs)) #convert casting table to a list of tuples
     castingTable = castingTable[1:] #Unicode error if you don't remove the duplicate first element
@@ -39,6 +39,7 @@ uncastedChords = []
 re_natural = r'[A-G]'
 re_modifier = r'#*b*'
 re_note = (re_natural + re_modifier) #This is one of the twelve root notes A, A#, B, C, etc.
+##TODO: add aug between dim and add
 re_chord = (r'(maj|min|dim|aug|add|sus|m)')
 re_interval = (r'([1-9]|1[0-3])')
 re_slash = '/'
@@ -58,9 +59,12 @@ temp_section_lyrics = ['']
 h = 0
 keep = 0
 keep2 = 0
+totalChords = 0
+totalUncastedChords = 0
 #for each line in the fulltext... note that each line is either chords or lyrics, no combo
-for u in xrange(len(temp_text)):
-    fullText = ' ' + temp_text[u] #fullText is the current line to analyze
+for u in range(len(temp_text)):
+    temp_string = temp_text[u].decode("utf-8")
+    fullText = ' ' + temp_string #fullText is the current line to analyze
     fullText = fullText.replace('ADD','add')
     fullText = fullText.replace('BFF','bff')
     fullText = fullText.replace('CD','cd')
@@ -84,6 +88,11 @@ for u in xrange(len(temp_text)):
     fullText = fullText.replace('CA','ca')
     fullText = fullText.replace('ADA','ada')
     fullText = fullText.replace('GE','ge')
+    fullText = fullText.replace('FADE','fade')
+    fullText = fullText.replace('LED','led')
+    fullText = fullText.replace('C/ ','C ')
+    fullText = fullText.replace('G/ ','G ')
+    fullText = fullText.replace('F/ ','F ')
     if "|-" in fullText or "CAPO ON" in fullText:
         continue #skip this line... nothing to analyze here
     #if there is a multiplier (e.g. a chorus that repeats twice, CHORUSx2), we want to weight it that many times as much
@@ -121,7 +130,7 @@ for u in xrange(len(temp_text)):
                 keep = keep+1
             temp_section_chords = temp_section_chords[1:]
             del big_list_of_chords[-len(temp_section_chords)]
-        for i in xrange(1,multiple):
+        for i in range(1,multiple):
             big_list_of_chords.extend(temp_section_chords)
             big_list_of_lyrics.extend(temp_section_lyrics)    
         chordflag = False
@@ -149,14 +158,14 @@ for u in xrange(len(temp_text)):
                 #also a tracking variable
                 keep = keep+1
             if len(temp_section_chords) == 0:
-                print "SHO)T"
+                print("SHO)T")
             del big_list_of_chords[-len(temp_section_chords)]
             temp_section_chords = temp_section_chords[1:]
         #add our temp section multiple times if it has a multiplier
-        for i in xrange(1,multiple):
+        for i in range(1,multiple):
             if len(temp_section_chords) != len(temp_section_lyrics):
                 keep2 = keep2+1
-                print len(temp_section_chords)-len(temp_section_lyrics)-1
+                print(len(temp_section_chords)-len(temp_section_lyrics)-1)
             big_list_of_chords.extend(temp_section_chords)
             big_list_of_lyrics.extend(temp_section_lyrics)
         #We're DONE with this temp section, reset and get ready for the next one
@@ -187,7 +196,7 @@ for u in xrange(len(temp_text)):
     castedChords = []
     #have to check the sharps first so it doesn't switch 'C#' into 'w0#'
     noteNums = [('C#',1),('D#',3),('F#',6),('G#',8),('A#',10),('C',0),('D',2),('E',4),('F',5),('G',7),('A',9),('B',11)]
-    
+    totalChords += len(origChords)
     for origChord in origChords:
         castedFlag = False #ADDITIONAL CODE FOR CHECKER VERSION
         #example of process: E/C# -> w4/w1 -> w0/w9 (store shift as 4) -> C/A -> Am -> w9m -> w1m -> C#m
@@ -206,6 +215,8 @@ for u in xrange(len(temp_text)):
         tempChord = caster.numChordToLetterChord(tempChord)
         #cast C letter version using table
         for chord in castingTable:
+            if tempChord == "C" or tempChord == "Cm" or tempChord == "Cdim":
+                totalUncastedChords += 1
             if tempChord == chord[0]:
                 tempChord = chord[1]
                 castedFlag = True;
@@ -250,31 +261,31 @@ for u in xrange(len(temp_text)):
             temp_section_lyrics.append(fullText)
 
 #We've done it!  Now let's do some final post-processing, printing overall stats and putting our data in files
-print(len(big_list_of_chords))
-print(len(big_list_of_lyrics))
-print(len(temp_text))
+print((len(big_list_of_chords)))
+print((len(big_list_of_lyrics)))
+print((len(temp_text)))
 
 
 pickle.dump( big_list_of_lyrics, open( "lyrics_uku.p", "wb" ) )
 pickle.dump( big_list_of_chords, open( "chords_uku.p", "wb" ) )
-for i in xrange(len(big_list_of_chords)):
+for i in range(len(big_list_of_chords)):
     big_list_of_chords[i] = ' '.join(big_list_of_chords[i])+'\n'
-for i in xrange(len(big_list_of_lyrics)):
+for i in range(len(big_list_of_lyrics)):
     big_list_of_lyrics[i] = ' '.join(nltk.word_tokenize(big_list_of_lyrics[i].replace('\n',' ').lower()))+'\n'
 
 k = 0
 kk = 0
 list_of_nulls = []
-for i in xrange(len(big_list_of_lyrics)):
+for i in range(len(big_list_of_lyrics)):
     if big_list_of_lyrics[i].isspace():
         list_of_nulls.append(i)
-for i in xrange(len(list_of_nulls)):
+for i in range(len(list_of_nulls)):
     del big_list_of_chords[list_of_nulls[i]-i]
     del big_list_of_lyrics[list_of_nulls[i]-i]
 
-with open('lyrics_uku.txt','wb') as myFile:
+with open('lyrics_uku.txt','w') as myFile:
     myFile.writelines(big_list_of_lyrics)
-with open('chords_uku.txt','wb') as myFile:
+with open('chords_uku.txt','w') as myFile:
     myFile.writelines(big_list_of_chords)
 print(h)
 print(keep)
@@ -289,4 +300,4 @@ else:
     print("Chords which were not found in the casting table: ")
     for chord in uncastedChords:
         print(chord)
-print(len(uncastedChords))
+print((len(uncastedChords)))
