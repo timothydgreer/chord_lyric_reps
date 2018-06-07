@@ -4,7 +4,7 @@ Created on Mon Sep 25 13:20:49 2017
 
 @author: greert
 """
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from bs4 import BeautifulSoup
 import pickle
 from string import ascii_lowercase
@@ -31,7 +31,7 @@ def checkEnglish(title):
     return (englishWords/totalWords >= ENGLISH_THRESHOLD)
 
 #urllib2 object can open URLs for us
-opener = urllib2.build_opener()
+opener = urllib.request.build_opener()
 opener.addheaders = [('User-agent', 'Mozilla/5.0')]
 
 #NOTE: Comment or uncomment from this until the next flag if you already have the links!
@@ -74,7 +74,7 @@ for c in ascii_lowercase:
             continue
 
 #now for each artist, open all their individual songs
-for i in xrange(len(artist_links)):
+for i in range(len(artist_links)):
     url = str(artist_links[i])
     response = opener.open(url)
     page = response.read()
@@ -99,9 +99,9 @@ pickle.dump(song_links,open( "song_links_uku.p", "wb"))
 
 #now all of our song URLs are stored
 song_links = pickle.load(open( "song_links_uku.p", "rb"))
-print(len(song_links))
+print((len(song_links)))
 b = 0 #b keeps track of how many songs we've successfully transcribed to text
-for i in xrange(len(song_links)):
+for i in range(len(song_links)):
     url = str(song_links[i])
     url_split = url.split('/')
     song_title = ' '.join(url_split[-2].split('-'))
@@ -109,7 +109,7 @@ for i in xrange(len(song_links)):
     try:
         response = opener.open(url)
     except:
-        print(url + ' cannot be opened')
+        print((url + ' cannot be opened'))
         continue
     page = response.read()
     soup = BeautifulSoup(page, 'lxml')
@@ -129,7 +129,7 @@ for i in xrange(len(song_links)):
     for link in soup.find_all('pre'):
         try:
             if not checkEnglish(link.text):
-                print(str(song_links[i]))
+                print((str(song_links[i])))
                 with open('non-english-songs_using_lyrics.txt','a') as myFile:
                         myFile.write(song_links[i]+'\n')
                 print("Skipping")
@@ -139,5 +139,6 @@ for i in xrange(len(song_links)):
             b = b+1
         except:
             continue
-#5014 songs for .3
-print('Number of songs ' + str(b))
+#5014 songs for .3 on 04/01
+#10936 songs for .3 on 06/07
+print(('Number of songs ' + str(b)))
