@@ -1,7 +1,7 @@
 # Learning Shared Vector Representations of Lyrics and Chords in Music
 For this project, we use UkuTabs because it is easy to scrape, has high quality, accurate arrangements, and is easy to clean. 
 First run scrape_uku_2.py to get the data. If you want the music tags, you can run scrape_uku_tagger.py. This gets information such as artist bio, genre(s), and band origin.
-The scraping script will give you non-english-songs_using_lyrics.txt and chords_and_lyrics_uku_pipes_english_only_using_lyrics.txt. We mostly want chords_and_lyrics_uku_pipes_english_only_using_lyrics.txt. Note that because we are appending to this file, you will want to delete this file every time you scrape.
+The scraping script will give you non-english-songs_using_lyrics.txt and chords_and_lyrics_uku_pipes_english_only_using_lyrics.txt. We mostly want chords_and_lyrics_uku_pipes_english_only_using_lyrics.txt.
 You will have to install pyEnchant (https://github.com/rfk/pyenchant) if you want to use the checkEnglish method.
 There should be about 5,500 songs (as of July 1, 2019)
 Then run analyze_uku.py to get the chords and lyrics files. They will be saved in lyrics_uku_separated.p and chords_uku_separated.txt and chords_uku_separated.p and chords_uku_separated.txt. convert_to_rns.py and collapse_song.py are also used here, which convert the chords to a predicted key and remove the song ending markers, respectively. These modules are pretty straightforward.
