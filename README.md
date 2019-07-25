@@ -10,9 +10,9 @@ There should be about 5,500 songs (as of July 1, 2019)
 
 3. After that, you can use a simple package like multivec (https://github.com/eske/multivec) to take in these files: lyrics_uku_unseparated and rns_uku_unseparated.txt. These will give you embeddings. In our work, we use a 200 dimension embedding space, skipgrams, and a window length of 1 for chords and 5 for lyrics.
 
-4. Run a genre classification task using find_embeddings.py. This uses the outputs from scrape_billboard.py and pull_in_jsons.py to scrape the billboard charts and determine which songs are in the Ukutabs dataset. Files are supplied to you in this github repo as well, so it should run out of the box.
+4. Run a genre classification task using genre_classification_task.py. This uses the outputs from scrape_billboard.py and pull_in_jsons.py to scrape the billboard charts and determine which songs are in the Ukutabs dataset. Files are supplied to you in this github repo as well, so it should run out of the box.
 
-5. Run a music emotion recognition task using find_embeddings_MER.py. This uses annotations from Grand_Annotations.xlsx to determine if a musical line has positive, negative, or neutral emotion. Files are supplied to you in this github repo as well, so it should run out of the box.
+5. Run a music emotion recognition task using music_emotion_task.py. This uses annotations from Grand_Annotations.xlsx to determine if a musical line has positive, negative, or neutral emotion. Files are supplied to you in this github repo as well, so it should run out of the box.
 
 
 
