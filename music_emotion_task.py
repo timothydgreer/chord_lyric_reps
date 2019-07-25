@@ -194,39 +194,6 @@ grand_embs_lyrics_bi_2 = []
 my_labels = []
 count = 1
 
-'''
-(final_chords, final_lyrics, final_anns) = generate_MER_data()
-
-with open('./data/rns_uku_all_20_by_genre_unseparated.txt','r') as myFile:
-    my1 = myFile.readlines()
-with open('./data/lyrics_uku_all_20_by_genre_unseparated.txt','r') as myFile:
-    my2 = myFile.readlines()
-my1 = [x.replace(' \n','') for x in my1]
-my2 = [x.replace('\n','') for x in my2]
-
-exist_chords = []
-exist_lyrics = []
-exist_anns = []
-for i in range(len(final_lyrics)):
-    if final_lyrics[i] in my2:
-        indices = [ind for ind, x in enumerate(my2) if x == final_lyrics[i]]
-        for index in indices:                
-            temp_rns = my1[index]
-            if len(temp_rns.split(' ')) == len(final_chords[i].split(' ')):
-                exist_chords.append(temp_rns)
-                exist_lyrics.append(final_lyrics[i])
-                exist_anns.append(final_anns[i])
-                break
-            else:
-                pass
-    else:
-        pass
-
-pickle.dump( exist_chords, open( "./data/exist_chords.p", "wb" ) )
-pickle.dump( exist_lyrics, open( "./data/exist_lyrics.p", "wb" ) )
-pickle.dump( exist_anns, open( "./data/exist_anns.p", "wb" ) )
-'''
-
 exist_chords = pickle.load(open( "./data/exist_chords.p", "rb"))
 exist_lyrics = pickle.load(open( "./data/exist_lyrics.p", "rb"))
 exist_anns = pickle.load(open( "./data/exist_anns.p", "rb"))

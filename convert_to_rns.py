@@ -33,86 +33,90 @@ Steps to find Roman Numeral:
 import caster
 import findTonicNumNo7
 
-input_file = "chords_uku_english_only_songmarkers_empty_lines_removed.txt"
-output_file = "rns_uku_english_only_songmarkers_empty_lines_removed.txt"
 
-#global scope variables
-noteNums = [('C#', 1), ('D#', 3), ('F#', 6), ('G#', 8), ('A#', 10), ('C', 0), ('D', 2), ('E', 4), ('F', 5), ('G', 7),
-            ('A', 9), ('B', 11)]  # have to check the sharps first so it doesn't switch 'C#' into 'w0#'
-
-# read in cadence casting table
-with open('cadence_casting_UTF-8.txt', 'r') as f:
-    inputs = []
-    outputs = []
-    exploLine = []
-    for line in f:
-        exploLine = line.split("\t")
-        exploLine[0] = exploLine[0].replace('\xef\xbb\xbf', '')  # clean up special chars
-        inputs.append(exploLine[0].replace('\ufeff', '').strip())  # clean up the special chars
-        outputs.append(exploLine[1].replace('\n', '').strip())  # clean up special chars
-    castingTable = list(zip(inputs, outputs))  # convert casting table to a list of tuples
-    print("Opened Cadence Casting Table")
-print(castingTable)  # test to make sure we've read in the table correctly
-
-# read in key tables for finding tonic num
-keyTable = []
-with open('key_table_UTF-8.txt', 'r') as f:
-    curLine = f.readline()
-    while(curLine!=""):
-        keyTable.append(curLine.split())
+def convert(input_file,output_file):
+    
+    #Example input and output files
+    #input_file = "chords_uku_english_only_songmarkers_empty_lines_removed.txt"
+    #output_file = "rns_uku_english_only_songmarkers_empty_lines_removed.txt"
+    
+    #global scope variables
+    noteNums = [('C#', 1), ('D#', 3), ('F#', 6), ('G#', 8), ('A#', 10), ('C', 0), ('D', 2), ('E', 4), ('F', 5), ('G', 7),
+                ('A', 9), ('B', 11)]  # have to check the sharps first so it doesn't switch 'C#' into 'w0#'
+    
+    # read in cadence casting table
+    with open('cadence_casting_UTF-8.txt', 'r') as f:
+        inputs = []
+        outputs = []
+        exploLine = []
+        for line in f:
+            exploLine = line.split("\t")
+            exploLine[0] = exploLine[0].replace('\xef\xbb\xbf', '')  # clean up special chars
+            inputs.append(exploLine[0].replace('\\ufeff', '').strip())  # clean up the special chars
+            outputs.append(exploLine[1].replace('\n', '').strip())  # clean up special chars
+        castingTable = list(zip(inputs, outputs))  # convert casting table to a list of tuples
+        print("Opened Cadence Casting Table")
+    print(castingTable)  # test to make sure we've read in the table correctly
+    
+    # read in key tables for finding tonic num
+    keyTable = []
+    with open('key_table_UTF-8.txt', 'r') as f:
         curLine = f.readline()
-print(keyTable) # test to make sure we've read table correctly
-
-#read in chords from file, song by song
-#split is by "  | | S O N G M A R K E R | |", and it starts with lyrics and the songmarker is AFTER each song
-
-with open(input_file, 'r') as f:
-    with open(output_file, 'w') as out:
-        curLine = f.readline()
-        while (curLine!=""):
-            #--STAGE 0: RESET--
-            origChords = []
-            numChords = []
-            tonicNum = 0
-            songmarker = ""
-
-            #--STAGE 1: READING SONG--
-            if (curLine!="\n" and curLine.find("| | S O N G M A R K E R | |")==-1):
-                while(curLine.find("| | S O N G M A R K E R | |")==-1): #while we're not at the Songmarker
-                    lineChords = curLine.split()
-                    for chord in lineChords:
-                        origChords.append(chord)
-                    origChords.append('\n') #keep output of original file intact
-                    curLine = f.readline()
-                songmarker = curLine #make sure we print the songmarker line after each song
-            # now we've hit a songmarker, so let's move on to processing!
-            else:
-                out.write(curLine) #keep the formatting of original file intact
-
-            #--STAGE 2: PROCESSING--
-            #only process if there actually are chords in origChords
-            if(len(origChords)>0):
-                #find tonic chord
-                tonicNum = findTonicNumNo7.findTonicNumNo7(origChords, keyTable)
-
-                #convert all chords in song to number chords
-                for origChord in origChords:
-                    origChord = caster.makeFlatsSharps(origChord)
-                    # shift numeral chord to relative to C (w0)
-                    numChords.append(caster.shiftNumChord(caster.letterChordToNumChord(origChord, noteNums),-tonicNum))
-
-                #cast to correct interval based on semitones
-                #we convert each chord to its interval notation (e.g. V, vi, I, etc.)
-                for i in range (0,len(numChords)):
-                    for chord in castingTable:
-                        if numChords[i] == chord[0]:
-                            numChords[i] = chord[1]
-                            break #break out of inner loop
-
-                #print
-                for numChord in numChords:
-                    out.write(numChord)
-                    if numChord != '\n':
-                        out.write(" ")
-                out.write(songmarker)
-            curLine = f.readline();
+        while(curLine!=""):
+            keyTable.append(curLine.split())
+            curLine = f.readline()
+    print(keyTable) # test to make sure we've read table correctly
+    
+    #read in chords from file, song by song
+    #split is by "  | | S O N G M A R K E R | |", and it starts with lyrics and the songmarker is AFTER each song
+    
+    with open(input_file, 'r') as f:
+        with open(output_file, 'w') as out:
+            curLine = f.readline()
+            while (curLine!=""):
+                #--STAGE 0: RESET--
+                origChords = []
+                numChords = []
+                tonicNum = 0
+                songmarker = ""
+    
+                #--STAGE 1: READING SONG--
+                if (curLine!="\n" and curLine.find("SONG OVER")==-1):
+                    while(curLine.find("SONG OVER")==-1): #while we're not at the Songmarker
+                        lineChords = curLine.split()
+                        for chord in lineChords:
+                            origChords.append(chord)
+                        origChords.append('\n') #keep output of original file intact
+                        curLine = f.readline()
+                    songmarker = curLine #make sure we print the songmarker line after each song
+                # now we've hit a songmarker, so let's move on to processing!
+                else:
+                    out.write(curLine) #keep the formatting of original file intact
+    
+                #--STAGE 2: PROCESSING--
+                #only process if there actually are chords in origChords
+                if(len(origChords)>0):
+                    #find tonic chord
+                    tonicNum = findTonicNumNo7.findTonicNumNo7(origChords, keyTable)
+    
+                    #convert all chords in song to number chords
+                    for origChord in origChords:
+                        origChord = caster.makeFlatsSharps(origChord)
+                        # shift numeral chord to relative to C (w0)
+                        numChords.append(caster.shiftNumChord(caster.letterChordToNumChord(origChord, noteNums),-tonicNum))
+    
+                    #cast to correct interval based on semitones
+                    #we convert each chord to its interval notation (e.g. V, vi, I, etc.)
+                    for i in range (0,len(numChords)):
+                        for chord in castingTable:
+                            if numChords[i] == chord[0]:
+                                numChords[i] = chord[1]
+                                break #break out of inner loop
+    
+                    #print
+                    for numChord in numChords:
+                        out.write(numChord)
+                        if numChord != '\n':
+                            out.write(" ")
+                    out.write(songmarker)
+                curLine = f.readline();

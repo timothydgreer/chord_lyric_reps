@@ -86,7 +86,7 @@ if __name__ == "__main__":
     with open('chords_and_lyrics_UTF-8.txt', encoding="utf8") as f:
         fullText = f.read()
         print("Opened Chords and Lyrics file")
-    print(fullText[0:100]); #test
+    print((fullText[0:100])); #test
     
     #read in chord casting table
     with open('chord_casting_UTF-8.txt', encoding="utf8") as f:
@@ -95,7 +95,7 @@ if __name__ == "__main__":
         exploLine=[]
         for line in f:
             exploLine = line.split("\t")
-            inputs.append(exploLine[0].replace('\ufeff', '')) #clean up the special chars
+            inputs.append(exploLine[0].replace('\\ufeff', '')) #clean up the special chars
             outputs.append(exploLine[1].replace('\n', '')) #clean up special chars
         castingTable = list(zip(inputs, outputs))
         print("Opened Chord Casting Table")
@@ -143,8 +143,8 @@ if __name__ == "__main__":
     for elem in matchIter:
         s = elem.start()
         e = elem.end()
-        print('Found "%s" in the text from %d to %d ("%s")' % \
-              (elem.re.pattern, s, e, elem.group('chordRet') ))
+        print(('Found "%s" in the text from %d to %d ("%s")' % \
+              (elem.re.pattern, s, e, elem.group('chordRet') )))
         #check for special case "Am I"
         if elem.group('chordRet') != 'Am' or fullText[e]!='I':
             origChords.append(elem.group('chordRet'))
@@ -180,6 +180,6 @@ if __name__ == "__main__":
         tempChord = shiftNumChord(tempChord, shift)
         #convert casted numeral chord to casted letter chord
         tempChord = numChordToLetterChord(tempChord)
-        print('Converted '+origChord+' to '+tempChord)
+        print(('Converted '+origChord+' to '+tempChord))
         castedChords.append(tempChord)
     print('Finished!')
