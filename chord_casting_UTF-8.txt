@@ -23,7 +23,6 @@ Cdim7	Cdim
 Cm/B	Cm
 Cm/A#	Cm
 Cm/A	F7
-Caug	C7
 C6	C
 C/E	C
 C11	C7
@@ -87,4 +86,11 @@ Cmaj/7	C#
 C/D#	C
 Csus4/C	C
 C2sus	C
+C7/F#	C7
+Cmin7	Cm
+Cmaj7/B	C
+C7m	C7
+C4	C
+C7sus	C7
+Caug	C7
 Caug7	C7

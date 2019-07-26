@@ -15,9 +15,7 @@ Created on Wed Jun 19 15:22:52 2019
 """
 import pickle
 import numpy as np
-import pylab
 import matplotlib.pyplot as plt
-from tsne import *
 from skmultilearn.adapt import MLkNN
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
@@ -36,7 +34,6 @@ from scipy import sparse
 from sklearn.naive_bayes import GaussianNB
 from skmultilearn.ensemble import RakelD
 from sklearn.metrics import f1_score
-from pull_in_annotations import *
 
 ###TODO: Get the vectors and visualizations for the pop, rock, latin, country songs!
 
@@ -145,9 +142,10 @@ def find_embeddings_lyrics(text_list,my_dict):
                 temp_embs += my_dict[clean_text(temp_text_list[j])]
             except:
                 if clean_text(temp_text_list[j]):
-                    print(clean_text(temp_text_list[j]))
+                    pass
+                    #print(clean_text(temp_text_list[j]))
         if not temp_text_list:
-            print(i)
+            #print(i)
             j_minus = j_minus+1
             continue                   
         my_len = j-j_minus
@@ -162,17 +160,17 @@ def find_BOW(chords, lyrics):
 
 #Uncomment from here to ***
 
-with open('multivec-master/my_models/lyrics_sg.txt', 'r') as myFile:
+with open('embeddings/lyrics_sg.txt', 'r') as myFile:
     mono_lyrics = myFile.readlines()
-with open('multivec-master/my_models/chords_sg.txt', 'r') as myFile:
+with open('embeddings/chords_sg.txt', 'r') as myFile:
     mono_chords = myFile.readlines()
-with open('multivec-master/my_models/lyrics_2_chords_chords_sg.txt', 'r') as myFile:
+with open('embeddings/lyrics_2_chords_chords_sg.txt', 'r') as myFile:
     bi_lyrics_chords = myFile.readlines()
-with open('multivec-master/my_models/lyrics_2_chords_lyrics_sg.txt', 'r') as myFile:
+with open('embeddings/lyrics_2_chords_lyrics_sg.txt', 'r') as myFile:
     bi_lyrics_lyrics = myFile.readlines()   
-with open('multivec-master/my_models/chords_2_lyrics_chords_sg.txt', 'r') as myFile:
+with open('embeddings/chords_2_lyrics_chords_sg.txt', 'r') as myFile:
     bi_chords_chords = myFile.readlines()
-with open('multivec-master/my_models/chords_2_lyrics_lyrics_sg.txt', 'r') as myFile:
+with open('embeddings/chords_2_lyrics_lyrics_sg.txt', 'r') as myFile:
     bi_chords_lyrics = myFile.readlines()
 
 #TODO: We already unseparated these, but we use the separated songs here so the
@@ -182,8 +180,8 @@ genres = ['latin','pop','country','rock','hip_hop']
 my_dict = {}    
 
 for genre in genres:  
-    my_dict[genre+'_lyrics'] = pickle.load(open( "lyrics_uku_06_06_19_all_20_by_genre_"+genre+".p", "rb" ) )
-    with open("rns_uku_all_20_by_genre_separated_"+genre+".txt", "r") as f:
+    my_dict[genre+'_lyrics'] = pickle.load(open( "data/lyrics_"+genre+".p", "rb" ) )
+    with open("data/rns_separated_"+genre+".txt", "r") as f:
         my_dict[genre+'_chords'] = f.readlines()
     #latin_chords = pickle.load(open( "rns_uku_latin_20_separated.p", "rb" ) )
 
@@ -318,36 +316,6 @@ BOW_right_2 = np.asarray([np.array(xi) for xi in BOW_right])
 y_hot = MultiLabelBinarizer().fit_transform(y_labels)
 
 
-#OTR
-
-#Get Old Town Road:
-with open("lil_nas_x_billy_lyrics.txt", "r") as f:
-    otr_billy_lyrics = f.readlines()
-
-with open("lil_nas_x_alone_lyrics.txt", "r") as f:
-    otr_lyrics = f.readlines()
-    
-with open("lil_nas_x_alone_rns.txt", "r") as f:
-    otr_chords = f.readlines()
-
-with open("lil_nas_x_billy_rns.txt", "r") as f:
-    otr_billy_chords = f.readlines()
-clean_otr_chords= clean_chords_list(otr_chords)
-clean_otr_billy_chords= clean_chords_list(otr_billy_chords)
-clean_otr_billy_lyrics = clean_lyrics_list(otr_billy_lyrics)
-clean_otr_lyrics = clean_lyrics_list(otr_lyrics)
-clean_otr_chords_embs = find_embeddings_chords(clean_otr_chords,chord_dict)
-clean_otr_billy_chords_embs = find_embeddings_chords(clean_otr_billy_chords,chord_dict)
-clean_otr_lyrics_embs = find_embeddings_lyrics(clean_otr_lyrics,lyrics_dict)
-clean_otr_billy_lyrics_embs = find_embeddings_lyrics(clean_otr_billy_lyrics,lyrics_dict)
-billy_bi = find_embeddings_lyrics(clean_otr_billy_lyrics,lyrics_dict_bi)
-alone_bi = find_embeddings_lyrics(clean_otr_lyrics,lyrics_dict_bi)
-
-
-
-#... to here ****
-
-
 good_r = []
 corr_i = []
 #Reduce the dimension to 4
@@ -388,9 +356,9 @@ for i in range(8):
     X = pca.transform(X)
     svd = TruncatedSVD(dims)
     Xpca = svd.fit_transform(BOW_right)
-    #For BOW 
+    #For BOW, uncomment this line: 
     #X_shuf, y_hot_shuf = shuffle(Xpca, y_hot, random_state = 7)
-    #For anything else:
+    #For anything else, uncomment this line:
     X_shuf, y_hot_shuf = shuffle(X, y_hot,random_state = 7)
 
         
@@ -408,7 +376,6 @@ for i in range(8):
     scores = cross_val_score(classifier, X_shuf, y_hot_shuf, cv=kfold, scoring='f1_micro')
     print("Scores")
     print(np.mean(scores))
-    #X_train, X_test, y_train, y_test = train_test_split(X, y_hot, test_size=0.20, random_state=42)
     
     
     kf = KFold(n_splits=5, random_state = 7)
@@ -453,11 +420,9 @@ for i in range(8):
         h_sc = h_score(y_test, y_pred.toarray())
         h_scs.append(h_sc)
 
-    print("i ",str(i))
-#        print("best j")
-#        print(best_j)
-#        print("best kk")
-#        print(best_kk)
+
+
+    print(i)
     print("h_score")
     print(sum(h_scs)/5.0)
     print("Accuracy")
@@ -529,54 +494,4 @@ print(f1_score(y_hamming, y_hot,average='micro'))
 
 print("Average f-score")
 print("N/A")
-#OTR
-    
 
-
-    
-    
-print("Using chords:")
-classifier = MLkNN(k=5)
-classifier.fit(Xc, y_hot)
-print(classifier.predict(np.array(clean_otr_chords_embs)).toarray())
-print(classifier.predict(np.array(clean_otr_billy_chords_embs)).toarray())
-
-classifier = RakelD(
-                    base_classifier=GaussianNB(),
-                    base_classifier_require_dense=[True, True],
-                    labelset_size=5
-                )
-classifier.fit(Xc, y_hot)
-print(classifier.predict(np.array(clean_otr_chords_embs)).toarray())
-print(classifier.predict(np.array(clean_otr_billy_chords_embs)).toarray())
-
-print("Using lyrics:")
-classifier = MLkNN(k=5)
-classifier.fit(Xl, y_hot)
-print(classifier.predict(np.array(clean_otr_lyrics_embs)).toarray())
-print(classifier.predict(np.array(clean_otr_billy_lyrics_embs)).toarray())
-
-classifier = RakelD(
-                    base_classifier=GaussianNB(),
-                    base_classifier_require_dense=[True, True],
-                    labelset_size=5
-                )
-classifier.fit(Xl, y_hot)
-print(classifier.predict(np.array(clean_otr_chords_embs)).toarray())
-print(classifier.predict(np.array(clean_otr_billy_chords_embs)).toarray())
-
-
-print("Using chords and lyrics:")
-classifier = MLkNN(k=5)
-classifier.fit(Xl_bi_2, y_hot)    
-print(classifier.predict(np.array(alone_bi)).toarray())    
-print(classifier.predict(np.array(billy_bi)).toarray())
-
-classifier = RakelD(
-                    base_classifier=GaussianNB(),
-                    base_classifier_require_dense=[True, True],
-                    labelset_size=5
-                )
-classifier.fit(Xl_bi_2, y_hot)
-print(classifier.predict(np.array(clean_otr_chords_embs)).toarray())
-print(classifier.predict(np.array(clean_otr_billy_chords_embs)).toarray())

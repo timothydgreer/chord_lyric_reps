@@ -10,13 +10,21 @@ import pickle
 import urllib.request, urllib.error, urllib.parse
 from string import ascii_lowercase
 import nltk
+from convert_to_rns import convert
+from collapse_song import collapse
 
-#TODO: Why are there only 51 lines??
+#Which genre is it? Example: genre = '_country' for country
+#Put '' for analyzing the corpus
+genre = '_latin'
+
 #Read in Chords and Lyrics in order to analyze them
-with open('chords_and_lyrics_uku_pipes_english_only_using_lyrics.txt', 'rb') as myFile:
+with open('data/chords_and_lyrics'+genre+'.txt', 'rb') as myFile:
     temp_text = myFile.readlines()
 print((type(temp_text[4]))) #make sure we have the right type (string)
 print((temp_text[4]))
+
+
+
 
 #read in chord casting table
 with open('chord_casting_UTF-8.txt', 'r') as f:
@@ -39,7 +47,6 @@ uncastedChords = []
 re_natural = r'[A-G]'
 re_modifier = r'#*b*'
 re_note = (re_natural + re_modifier) #This is one of the twelve root notes A, A#, B, C, etc.
-##TODO: add aug between dim and add
 re_chord = (r'(maj|min|dim|aug|add|sus|m)')
 re_interval = (r'([1-9]|1[0-3])')
 re_slash = '/'
@@ -53,9 +60,10 @@ chordflag = False
 lyricflag = False
 count = 0
 multiple = 1
+countchords = 0
 #Each "temp section" is a block: i.e. a single verse, chorus, bridge, etc.
 temp_section_chords = [[]] #outer array is each line in the block, and each line can have multiple chords (inner array)
-temp_section_lyrics = ['']
+temp_section_lyrics = [''] #Outer array is each line in the block
 h = 0
 keep = 0
 keep2 = 0
@@ -65,6 +73,8 @@ totalUncastedChords = 0
 for u in range(len(temp_text)):
     temp_string = temp_text[u].decode("utf-8")
     fullText = ' ' + temp_string #fullText is the current line to analyze
+    #These are some textual anomalies that we replace with correct text
+    #These are inspected manually for correctness
     fullText = fullText.replace('ADD','add')
     fullText = fullText.replace('BFF','bff')
     fullText = fullText.replace('CD','cd')
@@ -93,6 +103,7 @@ for u in range(len(temp_text)):
     fullText = fullText.replace('C/ ','C ')
     fullText = fullText.replace('G/ ','G ')
     fullText = fullText.replace('F/ ','F ')
+    fullText = fullText.replace('FA','F')
     if "|-" in fullText or "CAPO ON" in fullText:
         continue #skip this line... nothing to analyze here
     #if there is a multiplier (e.g. a chorus that repeats twice, CHORUSx2), we want to weight it that many times as much
@@ -122,8 +133,8 @@ for u in range(len(temp_text)):
         else:
             multiple = 1
         continue
-    #a SONGMARKER marks the end of a song and the beginning of a new song
-    if "||SONGMARKER||" in fullText:
+    #a SONG_ENDING_MARKER marks the end of a song and the beginning of a new song
+    if "||SONG_ENDING_MARKER||" in fullText:
         if len(temp_section_chords) != len(temp_section_lyrics):
             h = h+1
             if len(temp_section_chords)-1 != len(temp_section_lyrics):
@@ -132,15 +143,16 @@ for u in range(len(temp_text)):
             del big_list_of_chords[-len(temp_section_chords)]
         for i in range(1,multiple):
             big_list_of_chords.extend(temp_section_chords)
-            big_list_of_lyrics.extend(temp_section_lyrics)    
+            big_list_of_lyrics.extend(temp_section_lyrics)
         chordflag = False
         lyricflag = False
         multiple = 1
         temp_section_chords = [[]]
         temp_section_lyrics = ['']
-        #Uncomment if you want to split by song.
-        #big_list_of_chords.append("SONG OVER")
-        #big_list_of_lyrics.append("SONG OVER")
+        #Add a song over marker for chords for later casting
+        big_list_of_chords.append(["SONG OVER"])
+        #Optional: you can line up the ends of lyrical songs by uncommenting this
+        big_list_of_lyrics.append("SONG OVER")
         continue
     #if this line is a line break, our current temp section is over. Add to big list and reset.
     if fullText.isspace():
@@ -158,7 +170,7 @@ for u in range(len(temp_text)):
                 #also a tracking variable
                 keep = keep+1
             if len(temp_section_chords) == 0:
-                print("SHO)T")
+                print("No Chords Here")
             del big_list_of_chords[-len(temp_section_chords)]
             temp_section_chords = temp_section_chords[1:]
         #add our temp section multiple times if it has a multiplier
@@ -214,9 +226,11 @@ for u in range(len(temp_text)):
         #convert C numeral version to C letter version
         tempChord = caster.numChordToLetterChord(tempChord)
         #cast C letter version using table
+        if tempChord == "C" or tempChord == "Cm" or tempChord == "Cdim" or tempChord == "C7":
+                totalUncastedChords += 1
         for chord in castingTable:
             if tempChord == "C" or tempChord == "Cm" or tempChord == "Cdim":
-                totalUncastedChords += 1
+                pass
             if tempChord == chord[0]:
                 tempChord = chord[1]
                 castedFlag = True;
@@ -233,6 +247,7 @@ for u in range(len(temp_text)):
         castedChords.append(tempChord)
         #ADDITIONAL CODE FOR CHECKER
         if(not castedFlag):
+            countchords= countchords+1
             print(fullText)
             uncastedChords.append(origChord)
     #Now let's figure out whether our current line is chords or lyrics, and process it appropriately
@@ -261,13 +276,14 @@ for u in range(len(temp_text)):
             temp_section_lyrics.append(fullText)
 
 #We've done it!  Now let's do some final post-processing, printing overall stats and putting our data in files
-print((len(big_list_of_chords)))
-print((len(big_list_of_lyrics)))
-print((len(temp_text)))
+print("Number of lines of chords (includes song ending markers if used): ", (len(big_list_of_chords)))
+print("Number of lines of lyrics (includes song ending markers if used): ", (len(big_list_of_lyrics)))
+print("Number of chords missed: ", countchords)
+print("Number of total chords: ", totalChords)
+print("Number of uncasted chords: ", totalUncastedChords)
 
-
-pickle.dump( big_list_of_lyrics, open( "lyrics_uku.p", "wb" ) )
-pickle.dump( big_list_of_chords, open( "chords_uku.p", "wb" ) )
+pickle.dump( big_list_of_lyrics, open( "./data/lyrics"+genre+".p", "wb" ) )
+pickle.dump( big_list_of_chords, open( "./data/chords"+genre+".p", "wb" ) )
 for i in range(len(big_list_of_chords)):
     big_list_of_chords[i] = ' '.join(big_list_of_chords[i])+'\n'
 for i in range(len(big_list_of_lyrics)):
@@ -283,9 +299,9 @@ for i in range(len(list_of_nulls)):
     del big_list_of_chords[list_of_nulls[i]-i]
     del big_list_of_lyrics[list_of_nulls[i]-i]
 
-with open('lyrics_uku.txt','w') as myFile:
+with open('./data/lyrics_separated'+genre+'.txt','w') as myFile:
     myFile.writelines(big_list_of_lyrics)
-with open('chords_uku.txt','w') as myFile:
+with open('./data/chords_separated'+genre+'.txt','w') as myFile:
     myFile.writelines(big_list_of_chords)
 print(h)
 print(keep)
@@ -301,3 +317,21 @@ else:
     for chord in uncastedChords:
         print(chord)
 print((len(uncastedChords)))
+
+#Predict the key and convert (inputfile, outputfile)
+convert('./data/chords_separated'+genre+'.txt','./data/rns_separated'+genre+'.txt')
+
+#Collapse the song so the chords and lyrics have the same #lines (inputfile, outputfile)
+collapse('./data/rns_separated'+genre+'.txt','./data/rns_unseparated'+genre+'.txt')
+#If you need to collapse the lyrics
+collapse('./data/lyrics_separated'+genre+'.txt','./data/lyrics_unseparated'+genre+'.txt')
+
+#TODO: this check fails if you don't put in song markers for the lyrics
+#Last check to see if there are the same number of lines
+with open('./data/rns_unseparated'+genre+'.txt','r') as myFile:
+    my1 = myFile.readlines()
+with open('./data/lyrics_unseparated'+genre+'.txt','r') as myFile:
+    my2 = myFile.readlines()
+
+print("Are the lyrics and chords lined up?")
+print(len(my1)==len(my2))

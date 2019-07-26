@@ -10,6 +10,7 @@ import pandas as pd
 from pandas import ExcelWriter
 from pandas import ExcelFile
 import numpy as np
+import pickle
 
 def generate_MER_data():
     df = pd.read_excel('Grand_Annotations.xlsx', sheetname='Sheet1')
@@ -42,9 +43,9 @@ def find_lines(final_chords, final_lyrics, chord_corpus, lyrics_corpus):
 
 if __name__ == '__main__':
     (final_chords, final_lyrics, final_anns) = generate_MER_data()
-    with open('./data/rns_uku_all_20_by_genre_unseparated.txt','r') as myFile:
+    with open('./data/rns_unseparated.txt','r') as myFile:
         my1 = myFile.readlines()
-    with open('./data/lyrics_uku_all_20_by_genre_unseparated.txt','r') as myFile:
+    with open('./data/lyrics_unseparated.txt','r') as myFile:
         my2 = myFile.readlines()
     my1 = [x.replace(' \n','') for x in my1]
     my2 = [x.replace('\n','') for x in my2]
@@ -72,4 +73,7 @@ if __name__ == '__main__':
                     counter2 = counter2+1
         else:
             pass#print(final_lyrics[i])
+    pickle.dump(exist_chords,open( "data/annotations_chords.p", "wb"))
+    pickle.dump(exist_lyrics,open( "data/annotations_lyrics.p", "wb"))
+    pickle.dump(exist_anns,open( "data/annotations_responses.p", "wb"))
     print(counter)

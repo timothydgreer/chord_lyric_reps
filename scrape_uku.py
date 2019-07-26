@@ -42,12 +42,12 @@ def checkEnglish(title):
 #urllib2 object can open URLs for us
 opener = urllib.request.build_opener()
 opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-'''
+
 #NOTE: Comment from this until the the *** flag if you already have the links!
 #
 #
 #
-
+'''
 #OVERVIEW: on Ukutabs, the website is formatted with different levels of hierarchy
 #Goes like this: 1) Each letter of alphabet 2) Each artist whose name starts with that letter
 # 3) Each song by that artist
@@ -72,8 +72,8 @@ genres = ["Pop", "rock", "indie", "alternative", "female-vocalists",
           "american-idol", "screamo", "bluegrass", "new-wave", "chill", "r&b", 
           "progressive-rock", "soft-rock", "swedish", "comedy", "grunge", 
           "musical", "emocore", "Alt-country", "mellow", "ska", "psychedelic", 
-          "Scottish", "Lo-Fi", "swing", "nu-metal", "piano-rock", "cute", "
-          Acoustic-Rock", "country-pop", "Rock-and-Roll", "rhythm-and-blues", 
+          "Scottish", "Lo-Fi", "swing", "nu-metal", "piano-rock", "cute", 
+          "Acoustic-Rock", "country-pop", "Rock-and-Roll", "rhythm-and-blues", 
           "female", "Selena-Gomez", "New-Zealand", "Broadway", "americana"]
 
 for g in genres:
@@ -159,7 +159,7 @@ song_links_4 = [x for x in song_links_3 if x.count('/') == 6]
 
 
 #Dump
-pickle.dump(song_links_4,open( "song_links_uku_06_06_19_20_by_genre.p", "wb"))
+pickle.dump(song_links_4,open( "data/song_links.p", "wb"))
 
 
 #
@@ -168,7 +168,10 @@ pickle.dump(song_links_4,open( "song_links_uku_06_06_19_20_by_genre.p", "wb"))
 #***This is the endpoint of the comment block if you already have the links
 '''
 #now all of our song URLs are stored
-song_links = pickle.load(open( "country_links_20_yrs_by_genre.p", "rb"))
+
+#genre should be '' if analyzing all song links, and '_country' for country, etc.
+genre = '_latin'
+song_links = pickle.load(open( "data/song_links"+genre+".p", "rb"))
 print((len(list(set(song_links)))))
 song_links = sorted(list(set(song_links)))
 
@@ -212,10 +215,10 @@ for i in range(len(song_links)):
             b = b+1
         except:
             continue
-with open('non-english-songs_using_lyrics_20_by_genre_country.txt','w') as myFile:
+with open('data/non-english-songs'+genre+'.txt','w') as myFile:
     myFile.writelines(non_eng)
 
-with open('chords_and_lyrics_uku_pipes_english_only_using_lyrics_06_06_19_all_20_by_genre_country.txt','w') as myFile:
+with open('data/chords_and_lyrics'+genre+'.txt','w') as myFile:
     myFile.writelines(val_links)
 
 #5014 songs for .3 on 04/01/18

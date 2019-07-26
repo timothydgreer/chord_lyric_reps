@@ -15,9 +15,7 @@ Created on Wed Jun 19 15:22:52 2019
 """
 import pickle
 import numpy as np
-import pylab
 import matplotlib.pyplot as plt
-from tsne import *
 from skmultilearn.adapt import MLkNN
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
@@ -42,7 +40,9 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.linear_model import LogisticRegression
 from sklearn.preprocessing import StandardScaler
 from sklearn import tree
+import warnings
 
+warnings.filterwarnings('ignore')
 
 ###TODO: Get the vectors and visualizations for the pop, rock, latin, country songs!
 
@@ -125,7 +125,7 @@ def find_embeddings_lyrics(text_list,my_dict):
             temp_embs += my_dict[clean_text(temp_text_list[j])]
         except:
             if clean_text(temp_text_list[j]):
-                print(clean_text(temp_text_list[j]))
+                #print(clean_text(temp_text_list[j]))
                 j_minus = j_minus+1       
     my_len = j-j_minus
     return temp_embs/my_len
@@ -138,17 +138,17 @@ def find_BOW(chords, lyrics):
 
 #Uncomment from here to ***
 
-with open('multivec-master/my_models/lyrics_sg.txt', 'r') as myFile:
+with open('embeddings/lyrics_sg.txt', 'r') as myFile:
     mono_lyrics = myFile.readlines()
-with open('multivec-master/my_models/chords_sg.txt', 'r') as myFile:
+with open('embeddings/chords_sg.txt', 'r') as myFile:
     mono_chords = myFile.readlines()
-with open('multivec-master/my_models/lyrics_2_chords_chords_sg.txt', 'r') as myFile:
+with open('embeddings/lyrics_2_chords_chords_sg.txt', 'r') as myFile:
     bi_lyrics_chords = myFile.readlines()
-with open('multivec-master/my_models/lyrics_2_chords_lyrics_sg.txt', 'r') as myFile:
+with open('embeddings/lyrics_2_chords_lyrics_sg.txt', 'r') as myFile:
     bi_lyrics_lyrics = myFile.readlines()   
-with open('multivec-master/my_models/chords_2_lyrics_chords_sg.txt', 'r') as myFile:
+with open('embeddings/chords_2_lyrics_chords_sg.txt', 'r') as myFile:
     bi_chords_chords = myFile.readlines()
-with open('multivec-master/my_models/chords_2_lyrics_lyrics_sg.txt', 'r') as myFile:
+with open('embeddings/chords_2_lyrics_lyrics_sg.txt', 'r') as myFile:
     bi_chords_lyrics = myFile.readlines()
 
 #TODO: We already unseparated these, but we use the separated songs here so the
@@ -194,9 +194,9 @@ grand_embs_lyrics_bi_2 = []
 my_labels = []
 count = 1
 
-exist_chords = pickle.load(open( "./data/exist_chords.p", "rb"))
-exist_lyrics = pickle.load(open( "./data/exist_lyrics.p", "rb"))
-exist_anns = pickle.load(open( "./data/exist_anns.p", "rb"))
+exist_chords = pickle.load(open( "./data/annotations_chords.p", "rb"))
+exist_lyrics = pickle.load(open( "./data/annotations_lyrics.p", "rb"))
+exist_anns = pickle.load(open( "./data/annotations_responses.p", "rb"))
 
 
 for i in range(len(exist_chords)):
@@ -386,13 +386,6 @@ for i in range(8):
         
         f1s.append((f1_score(y_test, y_pred,average='weighted')))
         #print(accuracy)
-    
-    if (sum(accs)/5.0) > max_acc:
-        max_acc = (sum(accs)/5.0)
-        good_j.append(j)
-        corr_i.append(i)
-        my_accs.append((sum(accs)/5.0))
-        my_f1s.append(sum(f1s)/5.0)
 
 
     print("i ",str(i))
