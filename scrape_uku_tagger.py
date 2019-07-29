@@ -4,7 +4,7 @@ Created on Mon Sep 25 13:20:49 2017
 @author: greert and Ben Ma
 Python 2.7
 """
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 from bs4 import BeautifulSoup
 import pickle
 from string import ascii_lowercase
@@ -13,8 +13,8 @@ import json
 
 #Test
 d=enchant.Dict("en_US")
-print(d.check("Hello")) #should print True
-print(d.check("Helo")) #should print False
+print((d.check("Hello"))) #should print True
+print((d.check("Helo"))) #should print False
 
 def clean_string(string):
     string = string.replace('\n','')
@@ -38,7 +38,7 @@ def checkEnglish(title):
 """
 print ("Running!")
 #urllib2 object can open URLs for us
-opener = urllib2.build_opener()
+opener = urllib.request.build_opener()
 opener.addheaders = [('User-agent', 'Mozilla/5.0')]
 
 #Comment or uncomment from this until the next flag if you already have the links!
@@ -101,12 +101,12 @@ pickle.dump(song_links,open( "song_links_uku.p", "wb"))
 
 #now all of our song URLs are stored
 song_links = pickle.load(open( "song_links_uku.p", "rb"))
-print(len(song_links))
+print((len(song_links)))
 b = 0 #b keeps track of how many songs we've successfully transcribed to text
 k = 0 #k keeps track of how many songs do not have English lyrics
-for i in xrange(len(song_links)):
+for i in range(len(song_links)):
     url = str(song_links[i])
-    print("On URL '"+url+"'...")
+    print(("On URL '"+url+"'..."))
     url_split = url.split('/')
     song_title = ' '.join(url_split[-2].split('-'))
     artist = ' '.join(url_split[-3].split('-'))
@@ -120,7 +120,7 @@ for i in xrange(len(song_links)):
     try:
         response = opener.open(url)
     except:
-        print(url + ' cannot be opened')
+        print((url + ' cannot be opened'))
         continue
     page = response.read()
     soup = BeautifulSoup(page, 'lxml')
@@ -143,12 +143,12 @@ for i in xrange(len(song_links)):
         if(genreCellFlag):
             genreCellFlag = False
             for link in tableCell.find_all('a'):
-                genreTag = unicode(link.contents[0]).encode("utf-8")
+                genreTag = str(link.contents[0]).encode("utf-8")
                 #print(genreTag) # HOW DO YOU WANT TO OUTPUT THIS?
                 genreTagList.append(genreTag)
         else:
             try:
-                plainString = unicode(tableCell.contents[1].contents[0]).encode("utf-8")
+                plainString = str(tableCell.contents[1].contents[0]).encode("utf-8")
                 if(plainString=='Genre'):
                     genreCellFlag = True #flag this so that on the next pass we will parse the genre tags
             except:
@@ -167,7 +167,7 @@ for i in xrange(len(song_links)):
     try:
         response2 = opener.open(last_fm_link)
     except:
-        print(last_fm_link + ' cannot be opened')
+        print((last_fm_link + ' cannot be opened'))
         continue
     page2 = response2.read()
     soup2 = BeautifulSoup(page2, 'lxml')
@@ -191,12 +191,13 @@ for i in xrange(len(song_links)):
                     founded_in = link.text[12:].strip()
                 if "Members" in link.text[:9]:
                     memberstemp = link.text[9:].split(" ")
-                    members = [x.strip() for x in memberstemp if x is not u""]
+                    members = [x.strip() for x in memberstemp if x is not ""]
                 #print(link.text)
         except:
             continue
     #this finds all anchors (<a>) in all <span>s in all <td>s in each <pre>
     #^This implementation is site specific to the way UkuTabs organizes the content
+    #TODO: Jim Croce's Genie in a bottle! Notes
     anchors = [a for a in (td.find_all('span') for td in soup.find_all('pre')) if a]
     already_added = False #More than one 'pre' sometimes
     for link in soup.find_all('pre'):
@@ -204,8 +205,8 @@ for i in xrange(len(song_links)):
             if already_added:
                 continue
             if not checkEnglish(link.text):
-                print(str(song_links[i]))
-                with open('non-english-songs_using_lyrics.txt','a') as myFile:
+                print((str(song_links[i])))
+                with open('non_english_songs_tags.txt','a') as myFile:
                         myFile.write(song_links[i]+'\n')
                 print("Skipping")
                 k = k+1
@@ -224,7 +225,7 @@ for i in xrange(len(song_links)):
                     }) 
             data[-1]['genres']  = genreTagList
             
-            with open('chords_and_lyrics_uku_pipes_english_only_using_lyrics_tags.txt','a') as myFile:
+            with open('chords_and_lyrics_tags.txt','a') as myFile:
                 json.dump(data, myFile)
             #print "Written!"
             b = b+1
@@ -234,4 +235,5 @@ for i in xrange(len(song_links)):
             continue
     
 #5442 songs for .3
-print('Number of songs ' + str(b))
+#5417 songs for .5
+print(('Number of songs ' + str(b)))
